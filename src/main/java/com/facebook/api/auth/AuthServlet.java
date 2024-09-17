@@ -127,7 +127,7 @@ public class AuthServlet extends HttpServlet {
 		}
 		List<String> msg = new ArrayList<>();
 		msg.add("Successfully logout");
-		Cookie sessionCookie = new Cookie("user_id", "");
+		Cookie sessionCookie = new Cookie("SESSIONID", "");
 		sessionCookie.setMaxAge(0);
 		response.addCookie(sessionCookie);
 		response.setStatus(HttpServletResponse.SC_OK);
