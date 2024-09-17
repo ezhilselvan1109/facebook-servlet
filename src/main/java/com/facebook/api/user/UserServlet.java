@@ -16,6 +16,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
 @WebServlet("/api/user/*")
@@ -84,21 +85,12 @@ public class UserServlet extends HttpServlet {
 			throws ServletException, IOException {
 
 	    List<String> msg = new ArrayList<>();
-	    
-	    String userId = request.getParameter("user_id");
-	    
-	    if (userId == null || userId.equals("")) {
-	        msg.add("Provide User Id");
-	    } else if (!Validation.isInteger(userId)) {
-	        msg.add("Provide Valid User Id");
-	    }
-	    
+	    HttpSession session = request.getSession(false);
+	    int userId=(int) session.getAttribute("user_id");
 	    Part imagePart = request.getPart("image");
 	    if (imagePart == null) {
-	        msg.add("Provide Image or Description");
+	        msg.add("Provide Image");
 	    }
-	    
-	    
 	    byte[] imageData = null;
 	    if (imagePart != null) {
 	        if (!Validation.image(imagePart)) {
@@ -123,7 +115,7 @@ public class UserServlet extends HttpServlet {
 	        response.getWriter().write(jsonResponse.toString());
 	        return;
 	    }
-		Service.profile(Integer.parseInt(userId), imageData,response);
+		Service.profile(userId, imageData,response);
 	}
 
 	@Override
@@ -144,21 +136,9 @@ public class UserServlet extends HttpServlet {
 	
 	public void user(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		String username=request.getParameter("username");
-		List<String> msg = new ArrayList<>();
-		if (username == null || username.equals(""))
-			msg.add("Provide value");
-		if (!Validation.email(username) && !Validation.phoneNumber(username))
-			msg.add("provide valid value");
-
-		if (!msg.isEmpty()) {
-	        response.setStatus(422);
-	        ApiResponse apiResponse = new ApiResponse(422, "One or more validation errors occurred", msg);
-	        JSONObject jsonResponse = new JSONObject(apiResponse);
-	        response.getWriter().write(jsonResponse.toString());
-	        return;
-	    }
-		Service.user(username,response);
+		HttpSession session = request.getSession(false);
+	    int userId=(int) session.getAttribute("user_id");
+		Service.user(userId,response);
 	}
 
 	public void profile(HttpServletRequest request, HttpServletResponse response)
@@ -176,9 +156,10 @@ public class UserServlet extends HttpServlet {
 	        response.getWriter().write(jsonResponse.toString());
 	        return;
 	    }
-		if (from != null && !from.equals("")) {
-			System.out.print("from : " + from);
-			Service.profile(Integer.parseInt(id), Integer.parseInt(from),response);
+		if (from != null && !from.equals("") && Boolean.valueOf(from)==false) {
+			HttpSession session = request.getSession(false);
+		    int userId=(int) session.getAttribute("user_id");
+			Service.profile(Integer.parseInt(id), userId,response);
 			return;
 		}
 		Service.profile(Integer.parseInt(id),response);
@@ -188,12 +169,11 @@ public class UserServlet extends HttpServlet {
 			throws ServletException, IOException {
 		response.setContentType("application/json");
 		String key=request.getParameter("key");
-		String id=request.getParameter("id");
+		HttpSession session = request.getSession(false);
+	    int id=(int) session.getAttribute("user_id");
 		List<String> msg = new ArrayList<>();
 		if (key == null || key.equals(""))
 			msg.add("Provide key");
-		if (id == null || id.equals(""))
-			msg.add("Provide Id");
 		
 		if (!msg.isEmpty()) {
 	        response.setStatus(422);
@@ -202,7 +182,7 @@ public class UserServlet extends HttpServlet {
 	        response.getWriter().write(jsonResponse.toString());
 	        return;
 	    }
-		Service.search(key, Integer.parseInt(id),response);
+		Service.search(key,id,response);
 	}
 
 	public void all(HttpServletRequest request, HttpServletResponse response)

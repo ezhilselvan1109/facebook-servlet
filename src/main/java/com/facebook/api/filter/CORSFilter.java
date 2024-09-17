@@ -45,13 +45,13 @@ public class CORSFilter implements Filter {
         }
 
         String uri = httpRequest.getRequestURI();
-        if (uri.endsWith("/login") || uri.endsWith("/signup") || uri.endsWith("/forgotpassword") || uri.endsWith("/changepassword")) {
+        if (uri.endsWith("/login") || uri.endsWith("/signup") || uri.endsWith("/forgotPassword") || uri.endsWith("/changePassword")) {
             chain.doFilter(request, response);
             return;
         }
 
         HttpSession session = httpRequest.getSession(false);
-        if (session == null || session.getAttribute("user") == null) {
+        if (session == null || session.getAttribute("user_id") == null) {
         	List<String> msg = new ArrayList<>();
     		msg.add("Unauthorized: Please log in");
             httpResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

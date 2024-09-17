@@ -80,8 +80,8 @@ public class Service {
 		response.getWriter().write(jsonResponse.toString());
 	}
 
-	public static void user(String username,HttpServletResponse response) throws IOException {
-		List<User> user = UserService.getUser(username);
+	public static void user(int id,HttpServletResponse response) throws IOException {
+		List<User> user = UserService.profile(id);
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
 		String message = "Success";

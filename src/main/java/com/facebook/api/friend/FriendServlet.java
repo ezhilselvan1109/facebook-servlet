@@ -14,6 +14,7 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @WebServlet("/api/friend/*")
 public class FriendServlet extends HttpServlet {
@@ -24,25 +25,20 @@ public class FriendServlet extends HttpServlet {
 		response.setContentType("application/json");
 		String path = request.getPathInfo();
         if ("/request".equals(path)) {
-        	list(request, response);
+        	request(request, response);
         }
 	}
 	
 	public void request(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		List<String> msg = new ArrayList<>();
-		String from=request.getParameter("from");
-		String to=request.getParameter("to");
-		if (from == null || from.equals(""))
-			msg.add("Provide From value");
-		else if(!Validation.isInteger(from))
-			msg.add("Provide valid from value");
-		
+		HttpSession session = request.getSession(false);
+	    int from=(int) session.getAttribute("user_id");
+		String to=request.getParameter("id");
 		if (to == null || to.equals(""))
 			msg.add("Provide to value");
 		else if(!Validation.isInteger(to))
 			msg.add("Provide valid from value");
-		if(from.equals(to))
-			msg.add("is not valid request,from and to is same value");
+		
 		if (!msg.isEmpty()) {
 			response.setStatus(422);
 			ApiResponse apiResponse = new ApiResponse(422, "One or more validation occurred", msg);
@@ -50,7 +46,7 @@ public class FriendServlet extends HttpServlet {
 			response.getWriter().write(jsonResponse.toString());
 			return;
 		}
-		Service.request(Integer.parseInt(from), Integer.parseInt(to),response);
+		Service.request(from, Integer.parseInt(to),response);
 	}
 	
 	@Override
@@ -58,25 +54,21 @@ public class FriendServlet extends HttpServlet {
 		response.setContentType("application/json");
 		String path = request.getPathInfo();
         if ("/accept".equals(path)) {
-        	list(request, response);
+        	accept(request, response);
         }
 	}
 	
 	public void accept(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String from=request.getParameter("from");
-		String to=request.getParameter("to");
+		HttpSession session = request.getSession(false);
+	    int from=(int) session.getAttribute("user_id");
+	    String to=request.getParameter("id");
 		List<String> msg = new ArrayList<>();
-		if (from == null || from.equals(""))
-			msg.add("Provide From value");
-		else if(!Validation.isInteger(from))
-			msg.add("Provide valid from value");
 		
 		if (to == null || to.equals(""))
 			msg.add("Provide to value");
 		else if(!Validation.isInteger(to))
 			msg.add("Provide valid from value");
-		if(from.equals(to))
-			msg.add("is not valid request,from and to is same value");
+		
 		if (!msg.isEmpty()) {
 			response.setStatus(422);
 			ApiResponse apiResponse = new ApiResponse(422, "One or more validation occurred", msg);
@@ -84,7 +76,7 @@ public class FriendServlet extends HttpServlet {
 			response.getWriter().write(jsonResponse.toString());
 			return;
 		}
-		Service.accept(Integer.parseInt(from), Integer.parseInt(to),response);
+		Service.accept(from, Integer.parseInt(to),response);
 	}
 	
 	@Override
@@ -97,21 +89,16 @@ public class FriendServlet extends HttpServlet {
 	}
 	
 	public void reject(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		String from=request.getParameter("from");
-		String to=request.getParameter("to");
+		HttpSession session = request.getSession(false);
+	    int from=(int) session.getAttribute("user_id");
+	    String to=request.getParameter("id");
 		List<String> msg = new ArrayList<>();
-		if (from == null || from.equals(""))
-			msg.add("Provide From value");
-		else if(!Validation.isInteger(from))
-			msg.add("Provide valid from value");
 		
 		if (to == null || to.equals(""))
 			msg.add("Provide to value");
 		else if(!Validation.isInteger(to))
 			msg.add("Provide valid from value");
 		
-		if(from.equals(to))
-			msg.add("is not valid request,from and to is same value");
 		if (!msg.isEmpty()) {
 			response.setStatus(422);
 			ApiResponse apiResponse = new ApiResponse(422, "One or more validation occurred", msg);
@@ -119,7 +106,7 @@ public class FriendServlet extends HttpServlet {
 			response.getWriter().write(jsonResponse.toString());
 			return;
 		}
-		Service.reject(Integer.parseInt(from), Integer.parseInt(to),response);
+		Service.reject(from, Integer.parseInt(to),response);
 	}
 	
 	@Override
@@ -135,7 +122,7 @@ public class FriendServlet extends HttpServlet {
 		String user_id=request.getParameter("user_id");
 		List<String> msg = new ArrayList<>();
 		if (user_id == null || user_id.equals(""))
-			msg.add("Provide to value");
+			msg.add("Provide id value");
 		else if(!Validation.isInteger(user_id))
 			msg.add("Provide valid from value");
 		
@@ -148,6 +135,4 @@ public class FriendServlet extends HttpServlet {
 		}
 		Service.list(Integer.parseInt(user_id),response);
 	}
-	
-	
 }

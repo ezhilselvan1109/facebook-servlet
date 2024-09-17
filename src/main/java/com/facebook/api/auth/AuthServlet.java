@@ -32,8 +32,6 @@ public class AuthServlet extends HttpServlet {
 			login(request, response);
 		} else if ("/logout".equals(path)) {
 			logout(request, response);
-		} else if ("/changePassword".equals(path)) {
-			changePassword(request, response);
 		}
 	}
 
@@ -129,8 +127,7 @@ public class AuthServlet extends HttpServlet {
 		}
 		List<String> msg = new ArrayList<>();
 		msg.add("Successfully logout");
-
-		Cookie sessionCookie = new Cookie("SESSIONID", "");
+		Cookie sessionCookie = new Cookie("user_id", "");
 		sessionCookie.setMaxAge(0);
 		response.addCookie(sessionCookie);
 		response.setStatus(HttpServletResponse.SC_OK);

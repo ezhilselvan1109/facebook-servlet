@@ -24,11 +24,12 @@ public class Service {
 		int statusCode=0;
 		String message="";
         if(resultPassword!="" && Password.checkPassword(password, resultPassword)) {
+        	int id=UserService.getId(username);
         	statusCode=HttpServletResponse.SC_OK;
         	msg.add("Access Granded");
         	message="Success";
             HttpSession session = request.getSession();
-            session.setAttribute("user", username);
+            session.setAttribute("user_id", id);
             Cookie sessionCookie = new Cookie("SESSIONID", session.getId());
             sessionCookie.setHttpOnly(true);
             sessionCookie.setMaxAge(30 * 60);
@@ -66,7 +67,7 @@ public class Service {
 			message="Success";
 		}
 		response.setStatus(statusCode);
-		ApiResponse apiResponse = new ApiResponse(statusCode, message, msg);
+		ApiResponse apiResponse = new ApiResponse(statusCode, message, msg.isEmpty()?result:msg);
 		JSONObject jsonResponse = new JSONObject(apiResponse);
 		response.getWriter().write(jsonResponse.toString());
 	}

@@ -34,6 +34,25 @@ public class UserService {
 		}
 		return password;
 	}
+	
+	public static int getId(String username) {
+		String query = "SELECT id FROM users WHERE email = ? or phone = ?";
+		Connection connection = null;
+		int id=-1;
+		try {
+			connection = DatabaseConnection.getDbConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setString(1, username);
+			preparedStatement.setInt(2, Validation.phoneNumber(username) ? Integer.parseInt(username) : -1);
+			ResultSet resultSet = preparedStatement.executeQuery();
+			if (resultSet.next()) {
+				id = resultSet.getInt(1);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		}
+		return id;
+	}
 
 	public static boolean accountCreate(String firstName, String lastName, Date dateOfBirth, String password,String email, int phone) {
 		Connection connection = null;
