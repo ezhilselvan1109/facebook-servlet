@@ -11,6 +11,7 @@ import com.facebook.api.response.ApiResponse;
 import com.facebook.util.Validation;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.MultipartConfig;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,6 +19,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.Part;
 
+@MultipartConfig(fileSizeThreshold = 1024 * 1024 * 2, // 2 MB
+		maxFileSize = 1024 * 1024 * 10, // 10 MB
+		maxRequestSize = 1024 * 1024 * 50 // 50 MB
+)
 @WebServlet("/api/post/*")
 public class PostServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
@@ -27,9 +32,9 @@ public class PostServlet extends HttpServlet {
 			throws ServletException, IOException {
 		response.setContentType("application/json");
 		String path = request.getPathInfo();
-		if ("/request".equals(path)) {
+		if ("/create".equals(path)) {
 			createPost(request, response);
-		} else if("/like".equals(path)) {
+		} else if ("/like".equals(path)) {
 			like(request, response);
 		}
 	}
@@ -37,26 +42,16 @@ public class PostServlet extends HttpServlet {
 	protected void createPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 	    response.setContentType("application/json");
 	    response.setStatus(HttpServletResponse.SC_OK);
-	    
 	    List<String> msg = new ArrayList<>();
-	    
-	    String userId = request.getParameter("user_id");
+	    HttpSession session = request.getSession(false);
+	    int userId = (int) session.getAttribute("user_id");
 	    String description = request.getParameter("description");
-	    
-	    if (userId == null || userId.equals("")) {
-	        msg.add("Provide User Id");
-	    } else if (!Validation.isInteger(userId)) {
-	        msg.add("Provide Valid User Id");
-	    }
-	    
 	    Part imagePart = request.getPart("image");
-	    if (imagePart == null && (description == null || description.equals(""))) {
+	    if (imagePart == null && (description == null || description.trim().isEmpty())) {
 	        msg.add("Provide Image or Description");
 	    }
-	    
-	    
 	    byte[] imageData = null;
-	    if (imagePart != null) {
+	    if (imagePart != null && imagePart.getSize() > 0) {
 	        if (!Validation.image(imagePart)) {
 	            msg.add("Invalid image file type. Allowed types are: JPEG, PNG, GIF.");
 	        } else {
@@ -71,7 +66,6 @@ public class PostServlet extends HttpServlet {
 	            }
 	        }
 	    }
-	    
 	    if (!msg.isEmpty()) {
 	        response.setStatus(422);
 	        ApiResponse apiResponse = new ApiResponse(422, "One or more validation errors occurred", msg);
@@ -79,16 +73,14 @@ public class PostServlet extends HttpServlet {
 	        response.getWriter().write(jsonResponse.toString());
 	        return;
 	    }
-	    
-	    Service.createPost(Integer.parseInt(userId), description, imageData, response);
+	    Service.createPost(userId, description, imageData, response);
 	}
 
 
-	public void like(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+	public void like(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
-	    int user_id=(int) session.getAttribute("user_id");
-		String post_id=request.getParameter("post_id");
+		int user_id = (int) session.getAttribute("user_id");
+		String post_id = request.getParameter("post_id");
 		List<String> msg = new ArrayList<>();
 		if (post_id == null || post_id.equals(""))
 			msg.add("Provide Post Id");
@@ -102,7 +94,7 @@ public class PostServlet extends HttpServlet {
 			response.getWriter().write(jsonResponse.toString());
 			return;
 		}
-		Service.like(user_id, Integer.parseInt(post_id),response);
+		Service.like(user_id, Integer.parseInt(post_id), response);
 	}
 
 	@Override
@@ -114,12 +106,11 @@ public class PostServlet extends HttpServlet {
 			unlike(request, response);
 		}
 	}
-	
-	public void unlike(HttpServletRequest request, HttpServletResponse response)
-			throws ServletException, IOException {
+
+	public void unlike(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
-	    int user_id=(int) session.getAttribute("user_id");
-	    String post_id=request.getParameter("post_id");
+		int user_id = (int) session.getAttribute("user_id");
+		String post_id = request.getParameter("post_id");
 		List<String> msg = new ArrayList<>();
 		if (post_id == null || post_id.equals(""))
 			msg.add("Provide Post Id");
@@ -132,9 +123,9 @@ public class PostServlet extends HttpServlet {
 			response.getWriter().write(jsonResponse.toString());
 			return;
 		}
-		Service.unlike(user_id, Integer.parseInt(post_id),response);
+		Service.unlike(user_id, Integer.parseInt(post_id), response);
 	}
-	
+
 	@Override
 	protected void doGet(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
@@ -142,21 +133,21 @@ public class PostServlet extends HttpServlet {
 		String path = request.getPathInfo();
 		if ("/all".equals(path)) {
 			all(request, response);
-		} else if("/user".equals(path)) {
+		} else if ("/user".equals(path)) {
 			user(request, response);
 		}
 	}
 
-	public void all(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException {
+	public void all(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		HttpSession session = request.getSession(false);
-	    int user_id=(int) session.getAttribute("user_id");
-	    Service.all(user_id ,response);
+		int user_id = (int) session.getAttribute("user_id");
+		Service.all(user_id, response);
 	}
 
-	public void user(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException {
-		String user_id=request.getParameter("user_id");
+	public void user(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		String user_id = request.getParameter("user_id");
 		HttpSession session = request.getSession(false);
-	    int from=(int) session.getAttribute("user_id");
+		int from = (int) session.getAttribute("user_id");
 		List<String> msg = new ArrayList<>();
 		if (user_id == null || user_id.equals(""))
 			msg.add("Provide User Id");
@@ -167,7 +158,7 @@ public class PostServlet extends HttpServlet {
 			response.getWriter().write(jsonResponse.toString());
 			return;
 		}
-		Service.user(Validation.isInteger(user_id) ? Integer.parseInt(user_id) : 0,from,response);
+		Service.user(Validation.isInteger(user_id) ? Integer.parseInt(user_id) : 0, from, response);
 	}
 
 }
