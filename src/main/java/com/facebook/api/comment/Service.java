@@ -8,10 +8,14 @@ import org.json.JSONObject;
 
 import com.facebook.api.response.ApiResponse;
 import com.facebook.database.service.CommentService;
+import com.facebook.notification.kafka.NotificationConsumer;
+import com.facebook.notification.kafka.NotificationProducer;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 public class Service {
+	private static final NotificationProducer notificationProducer = new NotificationProducer();
+	
 	public static void create(int post_id,int user_id,String comment,List<Integer> taggedId,HttpServletResponse response) throws IOException {
 		List<String> msg=new ArrayList<>();
 		int statusCode=0;
@@ -20,6 +24,12 @@ public class Service {
 			msg.add("comment successful");
 			statusCode=HttpServletResponse.SC_CREATED;
 			message="Success";
+	        String postOwnerNotification = "New comment on your post: " + comment;
+	        notificationProducer.sendNotification(postOwnerNotification);
+	        for (int taggedUserId : taggedId) {
+	            String taggedUserNotification = "You were tagged in a comment: " + comment;
+	            notificationProducer.sendNotification(taggedUserNotification);
+	        }
 		}else {
 			msg.add("comment unsuccessful");
 			statusCode=HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
