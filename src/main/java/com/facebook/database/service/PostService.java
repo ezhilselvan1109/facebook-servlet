@@ -149,5 +149,29 @@ public class PostService {
 		}
 		return userPost;
 	}
+	
+	public static int getUserId(int id) {
+		String query = "select user_id from post where id=?";
+		Connection connection = null;
+		int user_id=-1;
+		try {
+			connection = DatabaseConnection.getDbConnection();
+			PreparedStatement preparedStatement = connection.prepareStatement(query);
+			preparedStatement.setInt(1, id);
+			ResultSet posts = preparedStatement.executeQuery();
+			while (posts.next()) {
+				user_id=posts.getInt("user_id");
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				connection.close();
+			} catch (SQLException e) {
+				throw new RuntimeException(e);
+			}
+		}
+		return user_id;
+	}
 
 }

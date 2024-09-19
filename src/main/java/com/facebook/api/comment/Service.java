@@ -7,8 +7,11 @@ import java.util.List;
 import org.json.JSONObject;
 
 import com.facebook.api.response.ApiResponse;
+import com.facebook.api.user.User;
 import com.facebook.database.service.CommentService;
-import com.facebook.notification.kafka.NotificationConsumer;
+import com.facebook.database.service.PostService;
+import com.facebook.database.service.UserService;
+import com.facebook.notification.Notification;
 import com.facebook.notification.kafka.NotificationProducer;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -24,12 +27,10 @@ public class Service {
 			msg.add("comment successful");
 			statusCode=HttpServletResponse.SC_CREATED;
 			message="Success";
-	        String postOwnerNotification = "New comment on your post: " + comment;
-	        notificationProducer.sendNotification(postOwnerNotification);
-	        for (int taggedUserId : taggedId) {
-	            String taggedUserNotification = "You were tagged in a comment: " + comment;
-	            notificationProducer.sendNotification(taggedUserNotification);
-	        }
+			List<User> user=UserService.profile(user_id);
+			int post_user_id=PostService.getUserId(post_id);
+    		JSONObject jsonResponse = new JSONObject(new Notification(post_user_id,post_id,user,comment,taggedId));
+	        notificationProducer.sendNotification(jsonResponse.toString());
 		}else {
 			msg.add("comment unsuccessful");
 			statusCode=HttpServletResponse.SC_INTERNAL_SERVER_ERROR;
