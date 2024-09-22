@@ -1,5 +1,12 @@
 package com.facebook.notification.websocket;
 
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnOpen;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpoint;
+
+import com.facebook.notification.kafka.NotificationConsumer;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -7,27 +14,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.facebook.notification.kafka.NotificationConsumer;
-
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnOpen;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.ServerEndpoint;
-
 @ServerEndpoint("/notification")
 public class Service {
 
     private static Map<Integer, Set<Session>> userSessions = new HashMap<>();
-    private static boolean kafkaConsumerStarted = false;
-    
+
     @OnOpen
     public void onOpen(Session session) {
         Integer userId = getUserIdFromSession(session);
         userSessions.computeIfAbsent(userId, k -> new HashSet<>()).add(session);
-        if (!kafkaConsumerStarted) {
-    		new NotificationConsumer().consume();
-            kafkaConsumerStarted = true;
+
+        if (!NotificationConsumer.userConsumer.containsKey(userId)) {
+            new NotificationConsumer(userId);
         }
+
+        startConsuming(userId);
         System.out.println("User " + userId + " connected with session ID: " + session.getId());
     }
 
@@ -38,13 +39,17 @@ public class Service {
         if (sessions != null) {
             sessions.remove(session);
             if (sessions.isEmpty()) {
+                NotificationConsumer consumer = NotificationConsumer.userConsumer.remove(userId);
+                if (consumer != null) {
+                    consumer.removeConsumer(userId);
+                }
                 userSessions.remove(userId);
             }
         }
         System.out.println("User " + userId + " disconnected from session ID: " + session.getId());
     }
 
-    public static void sendNotification(Object taggedUserId, String message) {
+    public static void sendNotification(Integer taggedUserId, String message) {
         Set<Session> sessions = userSessions.get(taggedUserId);
         if (sessions != null) {
             for (Session session : sessions) {
@@ -63,6 +68,21 @@ public class Service {
         Map<String, List<String>> params = session.getRequestParameterMap();
         return Integer.parseInt(params.get("userId").get(0));
     }
+
+    private void startConsuming(Integer userId) {
+        new Thread(() -> {
+            while (true) {
+                try {
+                    NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
+                    if (consumer != null) {
+                        consumer.consume(userId);
+                    }
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    break;
+                }
+            }
+        }).start();
+    }
 }
-
-

@@ -29,8 +29,12 @@ public class Service {
 			message="Success";
 			List<User> user=UserService.profile(user_id);
 			int post_user_id=PostService.getUserId(post_id);
-    		JSONObject jsonResponse = new JSONObject(new Notification(post_user_id,post_id,user,comment,taggedId));
-	        notificationProducer.sendNotification(jsonResponse.toString());
+			
+	        notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post was commented : "+comment)).toString());
+	        
+	        for (Integer taggedUser : taggedId) {
+	        	notificationProducer.sendNotification(taggedUser, new JSONObject(new Notification(post_id,user,"You were tagged on comment : "+comment)).toString());
+	        }
 		}else {
 			msg.add("comment unsuccessful");
 			statusCode=HttpServletResponse.SC_INTERNAL_SERVER_ERROR;

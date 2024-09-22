@@ -9,11 +9,16 @@ import org.json.JSONObject;
 import com.facebook.api.response.ApiResponse;
 import com.facebook.api.user.User;
 import com.facebook.database.service.PostService;
+import com.facebook.database.service.UserService;
+import com.facebook.notification.Notification;
+import com.facebook.notification.kafka.NotificationProducer;
 
 import jakarta.servlet.http.HttpServletResponse;
 
 public class Service {
 
+	private static final NotificationProducer notificationProducer = new NotificationProducer();
+	
 	public static void createPost(int user_id, String description, byte[] profileImage,HttpServletResponse response) throws IOException {
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
@@ -42,6 +47,9 @@ public class Service {
 			msg.add("successfully liked");
 			statusCode = HttpServletResponse.SC_CREATED;
 			message = "Success";
+			List<User> user=UserService.profile(user_id);
+			int post_user_id=PostService.getUserId(post_id);
+	        notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post is liked")).toString());
 		} else {
 			msg.add("Liked Failed");
 			statusCode = HttpServletResponse.SC_CONFLICT;
