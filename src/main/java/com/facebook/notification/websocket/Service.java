@@ -43,7 +43,6 @@ public class Service {
 			sessions.remove(session);
 			if (sessions.isEmpty()) {
 				NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
-				sendNotification(userId,consumer.toString());
 				if (consumer != null) {
 					consumer.removeConsumer(userId,consumer);
 				}
