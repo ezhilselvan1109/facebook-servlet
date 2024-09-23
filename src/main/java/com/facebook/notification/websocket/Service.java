@@ -42,9 +42,10 @@ public class Service {
 		if (sessions != null) {
 			sessions.remove(session);
 			if (sessions.isEmpty()) {
-				NotificationConsumer consumer = NotificationConsumer.userConsumer.remove(userId);
+				NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
+				sendNotification(userId,consumer.toString());
 				if (consumer != null) {
-					consumer.removeConsumer(userId);
+					consumer.removeConsumer(userId,consumer);
 				}
 				userSessions.remove(userId);
 			}
@@ -72,3 +73,7 @@ public class Service {
 		return Integer.parseInt(params.get("userId").get(0));
 	}
 }
+
+
+
+

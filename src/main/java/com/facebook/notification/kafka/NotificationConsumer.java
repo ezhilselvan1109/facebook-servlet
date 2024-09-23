@@ -15,8 +15,9 @@ import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class NotificationConsumer {
+	private volatile boolean exit = false;
 	public static Map<Integer, NotificationConsumer> userConsumer = new ConcurrentHashMap<>();
-	private Consumer<Integer, String> consumer;
+	public Consumer<Integer, String> consumer;
 	private static final String TOPIC = "notification";
 	private long lastOffset = -1;
 
@@ -33,30 +34,33 @@ public class NotificationConsumer {
 		userConsumer.put(userId, this);
 	}
 
-	public void removeConsumer(Integer userId) {
-		NotificationConsumer consumer = userConsumer.remove(userId);
+	public void removeConsumer(Integer userId,NotificationConsumer consumer) {
 		if (consumer != null) {
 			consumer.consumer.close();
+			userConsumer.remove(userId);
+			exit = true;
 			System.out.println("Closed consumer for user " + userId);
 		}
 	}
 
 	public void consume(Integer userId) {
 		if (consumer != null) {
-			while (true) {
+			while (!exit) {
 				try {
-					ConsumerRecords<Integer, String> records = consumer.poll(Duration.ofMillis(100));
-					records.forEach(record -> {
-						if (record.key().equals(userId)) {
-							System.out.println("Consumer: " + record.value());
-							Service.sendNotification(userId, record.value());
-							lastOffset = record.offset();
+					synchronized (this) {
+						ConsumerRecords<Integer, String> records = consumer.poll(Duration.ofMillis(100));
+						records.forEach(record -> {
+							if (record.key().equals(userId)) {
+								System.out.println("Consumer: " + record.value());
+								Service.sendNotification(userId, record.value());
+								lastOffset = record.offset();
+							}
+						});
+						if (lastOffset >= 0) {
+							consumer.commitSync(
+									Collections.singletonMap(new org.apache.kafka.common.TopicPartition(TOPIC, 0),
+											new org.apache.kafka.clients.consumer.OffsetAndMetadata(lastOffset + 1)));
 						}
-					});
-					if (lastOffset >= 0) {
-						consumer.commitSync(
-								Collections.singletonMap(new org.apache.kafka.common.TopicPartition(TOPIC, 0),
-										new org.apache.kafka.clients.consumer.OffsetAndMetadata(lastOffset + 1)));
 					}
 				} catch (Exception e) {
 					e.printStackTrace();
