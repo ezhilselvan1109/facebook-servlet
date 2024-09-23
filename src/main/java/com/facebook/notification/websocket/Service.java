@@ -17,72 +17,58 @@ import java.util.Set;
 @ServerEndpoint("/notification")
 public class Service {
 
-    private static Map<Integer, Set<Session>> userSessions = new HashMap<>();
+	private static Map<Integer, Set<Session>> userSessions = new HashMap<>();
 
-    @OnOpen
-    public void onOpen(Session session) {
-        Integer userId = getUserIdFromSession(session);
-        userSessions.computeIfAbsent(userId, k -> new HashSet<>()).add(session);
+	@OnOpen
+	public void onOpen(Session session) {
+		Integer userId = getUserIdFromSession(session);
+		userSessions.computeIfAbsent(userId, k -> new HashSet<>()).add(session);
 
-        if (!NotificationConsumer.userConsumer.containsKey(userId)) {
-            new NotificationConsumer(userId);
-        }
+		if (!NotificationConsumer.userConsumer.containsKey(userId)) {
+			new NotificationConsumer(userId).consume(userId);
+		} else {
+			NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
+			if (consumer != null) {
+				consumer.consume(userId);
+			}
+		}
+		System.out.println("User " + userId + " connected with session ID: " + session.getId());
+	}
 
-        startConsuming(userId);
-        System.out.println("User " + userId + " connected with session ID: " + session.getId());
-    }
+	@OnClose
+	public void onClose(Session session) {
+		Integer userId = getUserIdFromSession(session);
+		Set<Session> sessions = userSessions.get(userId);
+		if (sessions != null) {
+			sessions.remove(session);
+			if (sessions.isEmpty()) {
+				NotificationConsumer consumer = NotificationConsumer.userConsumer.remove(userId);
+				if (consumer != null) {
+					consumer.removeConsumer(userId);
+				}
+				userSessions.remove(userId);
+			}
+		}
+		System.out.println("User " + userId + " disconnected from session ID: " + session.getId());
+	}
 
-    @OnClose
-    public void onClose(Session session) {
-        Integer userId = getUserIdFromSession(session);
-        Set<Session> sessions = userSessions.get(userId);
-        if (sessions != null) {
-            sessions.remove(session);
-            if (sessions.isEmpty()) {
-                NotificationConsumer consumer = NotificationConsumer.userConsumer.remove(userId);
-                if (consumer != null) {
-                    consumer.removeConsumer(userId);
-                }
-                userSessions.remove(userId);
-            }
-        }
-        System.out.println("User " + userId + " disconnected from session ID: " + session.getId());
-    }
+	public static void sendNotification(Integer taggedUserId, String message) {
+		Set<Session> sessions = userSessions.get(taggedUserId);
+		if (sessions != null) {
+			for (Session session : sessions) {
+				try {
+					session.getBasicRemote().sendText(message);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+		} else {
+			System.out.println("User " + taggedUserId + " is not connected.");
+		}
+	}
 
-    public static void sendNotification(Integer taggedUserId, String message) {
-        Set<Session> sessions = userSessions.get(taggedUserId);
-        if (sessions != null) {
-            for (Session session : sessions) {
-                try {
-                    session.getBasicRemote().sendText(message);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        } else {
-            System.out.println("User " + taggedUserId + " is not connected.");
-        }
-    }
-
-    private Integer getUserIdFromSession(Session session) {
-        Map<String, List<String>> params = session.getRequestParameterMap();
-        return Integer.parseInt(params.get("userId").get(0));
-    }
-
-    private void startConsuming(Integer userId) {
-        new Thread(() -> {
-            while (true) {
-                try {
-                    NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
-                    if (consumer != null) {
-                        consumer.consume(userId);
-                    }
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                    break;
-                }
-            }
-        }).start();
-    }
+	private Integer getUserIdFromSession(Session session) {
+		Map<String, List<String>> params = session.getRequestParameterMap();
+		return Integer.parseInt(params.get("userId").get(0));
+	}
 }
