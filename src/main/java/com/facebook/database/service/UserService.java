@@ -282,6 +282,43 @@ public class UserService {
 		}
 		return userList;
 	}
+	
+	public static List<User> profile(List<Integer> ids) {
+	    String query = "SELECT u.id,u.firstName,u.lastName,u.dateOfBirth,u.email,u.phone,p.image FROM users u LEFT JOIN profile p ON u.id = p.user_id WHERE u.id = ?;";
+	    Connection connection = null;
+	    List<User> userList = new ArrayList<>();
+	    
+	    try {
+	        connection = DatabaseConnection.getDbConnection();
+	        PreparedStatement preparedStatement = connection.prepareStatement(query);
+	        
+	        for (int id : ids) {
+	            preparedStatement.setInt(1, id);
+	            ResultSet users = preparedStatement.executeQuery();
+	            while (users.next()) {
+	                byte[] image = users.getBytes("image");
+	                User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),
+	                                     users.getDate("dateOfBirth"), users.getString("email"), users.getInt("phone"), 
+	                                     null, null, new Profile(image), null);
+	                userList.add(user);
+	            }
+	            users.close();
+	        }
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	    } finally {
+	        try {
+	            if (connection != null) {
+	                connection.close();
+	            }
+	        } catch (SQLException e) {
+	            throw new RuntimeException(e);
+	        }
+	    }
+	    
+	    return userList;
+	}
+
 
 	public static List<User> profile(int id, int from) {
 		String query = "SELECT * FROM ( WITH user_details AS ( SELECT u.id AS user_id, u.firstName, u.lastName, u.dateOfBirth, u.email, u.phone,  p.image FROM users u LEFT JOIN profile p ON u.id = p.user_id WHERE u.id = ? ), friendship AS ( SELECT f.is_friend, u1.id AS user1_id, u2.id AS user2_id FROM friends f INNER JOIN users u1 ON f.user1 = u1.id INNER JOIN users u2 ON f.user2 = u2.id WHERE (f.user1 = ? AND f.user2 = ?) OR (f.user1 = ? AND f.user2 = ?) ) SELECT ud.*,f.user1_id as friend_from,f.user2_id as friend_to, f.is_friend FROM user_details ud LEFT JOIN friendship f ON f.user2_id = ud.user_id OR f.user1_id = ud.user_id ) AS result;";

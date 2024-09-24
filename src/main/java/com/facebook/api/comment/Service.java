@@ -29,11 +29,21 @@ public class Service {
 			message="Success";
 			List<User> user=UserService.profile(user_id);
 			int post_user_id=PostService.getUserId(post_id);
-			
-	        notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post was commented : "+comment)).toString());
+			List<User> tagged=null;
+			if(taggedId.size()>0) {
+				tagged=UserService.profile(taggedId);
+			}
+	        if(taggedId.contains(post_user_id)) {
+	        	notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"you were tagged "+(taggedId.size()>1?" and others ":"")+"on Your post "+(!comment.isEmpty()?" and commented : "+comment:""),tagged)).toString());
+	        }else if(taggedId.size()>0){
+	        	notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post was tagged"+(!comment.isEmpty()?" and commented : "+comment:""),tagged)).toString());
+	        }else {
+	        	notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post was commented : "+comment,tagged)).toString());
+	        }
 	        
 	        for (Integer taggedUser : taggedId) {
-	        	notificationProducer.sendNotification(taggedUser, new JSONObject(new Notification(post_id,user,"You were tagged on comment : "+comment)).toString());
+	        	if(taggedUser==post_user_id)continue;
+	        	notificationProducer.sendNotification(taggedUser, new JSONObject(new Notification(post_id,user,"You were tagged"+(!comment.isEmpty()?" and commented : "+comment:""),tagged)).toString());
 	        }
 		}else {
 			msg.add("comment unsuccessful");

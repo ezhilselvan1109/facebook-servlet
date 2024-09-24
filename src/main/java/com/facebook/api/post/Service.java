@@ -49,7 +49,7 @@ public class Service {
 			message = "Success";
 			List<User> user=UserService.profile(user_id);
 			int post_user_id=PostService.getUserId(post_id);
-	        notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post is liked")).toString());
+	        notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post is liked",null)).toString());
 		} else {
 			msg.add("Liked Failed");
 			statusCode = HttpServletResponse.SC_CONFLICT;

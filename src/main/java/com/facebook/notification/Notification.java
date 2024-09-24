@@ -22,11 +22,15 @@ public class Notification {
 	@JsonProperty("comment")
 	private String comment;
 	
-	public Notification(Integer post_id, List<User> user, String comment) {
+	@JsonProperty("tag")
+	private List<User> tag;
+	
+	public Notification(Integer post_id, List<User> user, String comment,List<User> tag) {
 		super();
 		this.post_id = post_id;
 		this.user = user;
 		this.comment = comment;
+		this.tag=tag;
 	}
 
 	public Integer getPost_id() {
@@ -51,6 +55,14 @@ public class Notification {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+
+	public List<User> getTag() {
+		return tag;
+	}
+
+	public void setTag(List<User> tag) {
+		this.tag = tag;
 	}
 
 	public String toJson() throws IOException {
