@@ -26,13 +26,7 @@ public class Service {
 
 		if (!NotificationConsumer.userConsumer.containsKey(userId)) {
 			new NotificationConsumer(userId).consume(userId);
-		} else {
-			NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
-			if (consumer != null) {
-				consumer.consume(userId);
-			}
 		}
-		System.out.println("User " + userId + " connected with session ID: " + session.getId());
 	}
 
 	@OnClose
@@ -49,7 +43,6 @@ public class Service {
 				userSessions.remove(userId);
 			}
 		}
-		System.out.println("User " + userId + " disconnected from session ID: " + session.getId());
 	}
 
 	public static void sendNotification(Integer taggedUserId, String message) {
@@ -62,8 +55,6 @@ public class Service {
 					e.printStackTrace();
 				}
 			}
-		} else {
-			System.out.println("User " + taggedUserId + " is not connected.");
 		}
 	}
 

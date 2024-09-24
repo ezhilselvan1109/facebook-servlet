@@ -39,7 +39,6 @@ public class NotificationConsumer {
 			consumer.consumer.close();
 			userConsumer.remove(userId);
 			exit = true;
-			System.out.println("Closed consumer for user " + userId);
 		}
 	}
 
@@ -51,7 +50,6 @@ public class NotificationConsumer {
 						ConsumerRecords<Integer, String> records = consumer.poll(Duration.ofMillis(100));
 						records.forEach(record -> {
 							if (record.key().equals(userId)) {
-								System.out.println("Consumer: " + record.value());
 								Service.sendNotification(userId, record.value());
 								lastOffset = record.offset();
 							}
