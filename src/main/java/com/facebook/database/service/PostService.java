@@ -88,13 +88,14 @@ public class PostService {
 	}
 
 	public static List<Post> getPosts(int id) {
-		String query = "SELECT p.id AS post_id,p.description,p.image,u.firstName,u.lastName,u.id AS user_id,u.email,u.phone,pr.image AS profile_image,COUNT(pl.id) AS total_likes,CASE WHEN EXISTS ( SELECT 1 FROM postlike pl2 WHERE pl2.post_id = p.id ) THEN TRUE ELSE FALSE END AS is_liked FROM post p LEFT JOIN postlike pl ON p.id = pl.post_id JOIN users u ON p.user_id = u.id LEFT JOIN profile pr ON u.id = pr.user_id WHERE p.user_id != ? GROUP BY p.id,u.id, pr.image ORDER BY p.created_at DESC;";
+		String query = "SELECT p.id AS post_id,p.description,p.image,u.firstName,u.lastName,u.id AS user_id,u.email,u.phone,pr.image AS profile_image,COUNT(pl.id) AS total_likes,CASE WHEN EXISTS ( SELECT 1 FROM postlike pl2 WHERE pl2.post_id = p.id AND pl2.liked_by = ?) THEN TRUE ELSE FALSE END AS is_liked FROM post p LEFT JOIN postlike pl ON p.id = pl.post_id JOIN users u ON p.user_id = u.id LEFT JOIN profile pr ON u.id = pr.user_id WHERE p.user_id != ? GROUP BY p.id,u.id, pr.image ORDER BY p.created_at DESC;";
 		Connection connection = null;
 		List<Post> postList = new ArrayList<>();
 		try {
 			connection = DatabaseConnection.getDbConnection();
 			PreparedStatement preparedStatement = connection.prepareStatement(query);
 			preparedStatement.setInt(1, id);
+			preparedStatement.setInt(2, id);
 			ResultSet posts = preparedStatement.executeQuery();
 			while (posts.next()) {
 				byte[] post_image = posts.getBytes("image");
