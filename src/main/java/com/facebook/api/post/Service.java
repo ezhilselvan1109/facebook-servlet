@@ -18,8 +18,9 @@ import jakarta.servlet.http.HttpServletResponse;
 public class Service {
 
 	private static final NotificationProducer notificationProducer = new NotificationProducer();
-	
-	public static void createPost(int user_id, String description, byte[] profileImage,HttpServletResponse response) throws IOException {
+
+	public static void createPost(int user_id, String description, byte[] profileImage, HttpServletResponse response)
+			throws IOException {
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
 		String message = "Success";
@@ -36,10 +37,10 @@ public class Service {
 		ApiResponse apiResponse = new ApiResponse(statusCode, message, msg);
 		JSONObject jsonResponse = new JSONObject(apiResponse);
 		response.getWriter().write(jsonResponse.toString());
-		
+
 	}
 
-	public static void like(int user_id, int post_id,HttpServletResponse response) throws IOException {
+	public static void like(int user_id, int post_id, HttpServletResponse response) throws IOException {
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
 		String message = "Success";
@@ -47,9 +48,12 @@ public class Service {
 			msg.add("successfully liked");
 			statusCode = HttpServletResponse.SC_CREATED;
 			message = "Success";
-			List<User> user=UserService.profile(user_id);
-			int post_user_id=PostService.getUserId(post_id);
-	        notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post is liked",null)).toString());
+			List<User> user = UserService.profile(user_id);
+			int post_user_id = PostService.getUserId(post_id);
+			if (post_user_id != user_id) {
+				notificationProducer.sendNotification("like",post_user_id,
+						new JSONObject(new Notification(post_id, user, "Your post is liked", null)).toString());
+			}
 		} else {
 			msg.add("Liked Failed");
 			statusCode = HttpServletResponse.SC_CONFLICT;
@@ -61,7 +65,7 @@ public class Service {
 		response.getWriter().write(jsonResponse.toString());
 	}
 
-	public static void unlike(int user_id, int post_id,HttpServletResponse response) throws IOException {
+	public static void unlike(int user_id, int post_id, HttpServletResponse response) throws IOException {
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
 		String message = "Success";
@@ -80,7 +84,7 @@ public class Service {
 		response.getWriter().write(jsonResponse.toString());
 	}
 
-	public static void all(int id,HttpServletResponse response) throws IOException {
+	public static void all(int id, HttpServletResponse response) throws IOException {
 		List<Post> posts = PostService.getPosts(id);
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
@@ -89,15 +93,15 @@ public class Service {
 			msg.add("Data is not found");
 			statusCode = HttpServletResponse.SC_NOT_FOUND;
 			message = "Failed";
-		} 
+		}
 		response.setStatus(statusCode);
-		ApiResponse apiResponse = new ApiResponse(statusCode, message, msg.isEmpty()?posts: msg);
+		ApiResponse apiResponse = new ApiResponse(statusCode, message, msg.isEmpty() ? posts : msg);
 		JSONObject jsonResponse = new JSONObject(apiResponse);
 		response.getWriter().write(jsonResponse.toString());
 	}
 
-	public static void user(int id,int from,HttpServletResponse response) throws IOException {
-		List<User> posts = PostService.getUserPosts(id,from);
+	public static void user(int id, int from, HttpServletResponse response) throws IOException {
+		List<User> posts = PostService.getUserPosts(id, from);
 		List<String> msg = new ArrayList<>();
 		int statusCode = 200;
 		String message = "Success";
@@ -105,9 +109,9 @@ public class Service {
 			msg.add("Data is not found");
 			statusCode = HttpServletResponse.SC_NOT_FOUND;
 			message = "Failed";
-		} 
+		}
 		response.setStatus(statusCode);
-		ApiResponse apiResponse = new ApiResponse(statusCode, message,msg.isEmpty()?posts: msg);
+		ApiResponse apiResponse = new ApiResponse(statusCode, message, msg.isEmpty() ? posts : msg);
 		JSONObject jsonResponse = new JSONObject(apiResponse);
 		response.getWriter().write(jsonResponse.toString());
 	}

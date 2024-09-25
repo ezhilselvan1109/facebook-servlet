@@ -34,8 +34,7 @@ public class Service {
 		Integer userId = getUserIdFromSession(session);
 		Set<Session> sessions = userSessions.get(userId);
 		if (sessions != null) {
-			sessions.remove(session);
-			if (sessions.isEmpty()) {
+			if (sessions.remove(session)) {
 				NotificationConsumer consumer = NotificationConsumer.userConsumer.get(userId);
 				if (consumer != null) {
 					consumer.removeConsumer(userId,consumer);

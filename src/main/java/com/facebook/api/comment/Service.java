@@ -34,16 +34,16 @@ public class Service {
 				tagged=UserService.profile(taggedId);
 			}
 	        if(taggedId.contains(post_user_id)) {
-	        	notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"you were tagged "+(taggedId.size()>1?" and others ":"")+"on Your post "+(!comment.isEmpty()?" and commented : "+comment:""),tagged)).toString());
+	        	notificationProducer.sendNotification("tag",post_user_id, new JSONObject(new Notification(post_id,user,"you were tagged "+(taggedId.size()>1?" and others ":"")+"on Your post "+(!comment.isEmpty()?" and comment : "+comment:""),tagged)).toString());
 	        }else if(taggedId.size()>0){
-	        	notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post was tagged"+(!comment.isEmpty()?" and commented : "+comment:""),tagged)).toString());
-	        }else {
-	        	notificationProducer.sendNotification(post_user_id, new JSONObject(new Notification(post_id,user,"Your post was commented : "+comment,tagged)).toString());
+	        	notificationProducer.sendNotification("tag",post_user_id, new JSONObject(new Notification(post_id,user,"Your post was tagged"+(!comment.isEmpty()?" and comment : "+comment:""),tagged)).toString());
+	        }else if(post_user_id!=user_id){
+	        	notificationProducer.sendNotification("comment",post_user_id, new JSONObject(new Notification(post_id,user,"Your post was commented : "+comment,tagged)).toString());
 	        }
 	        
 	        for (Integer taggedUser : taggedId) {
 	        	if(taggedUser==post_user_id)continue;
-	        	notificationProducer.sendNotification(taggedUser, new JSONObject(new Notification(post_id,user,"You were tagged"+(!comment.isEmpty()?" and commented : "+comment:""),tagged)).toString());
+	        	notificationProducer.sendNotification("tag",taggedUser, new JSONObject(new Notification(post_id,user,"You were tagged"+(taggedId.size()>1?" and others ":"")+(!comment.isEmpty()?" and comment : "+comment:""),tagged)).toString());
 	        }
 		}else {
 			msg.add("comment unsuccessful");

@@ -22,9 +22,10 @@ public class NotificationProducer {
         producer = new KafkaProducer<>(props);
     }
 
-    public void sendNotification(int userId, String message) {
+    public void sendNotification(String type,int userId, String message) {
         try {
-            Future<RecordMetadata> future = producer.send(new ProducerRecord<>(TOPIC, userId, message));
+        	int partition = getPartitionForType(type);
+        	Future<RecordMetadata> future = producer.send(new ProducerRecord<>(TOPIC,partition, userId, message));
             future.get();
         } catch (Exception e) {
             e.printStackTrace();
@@ -33,5 +34,18 @@ public class NotificationProducer {
 
     public void close() {
         producer.close();
+    }
+    
+    private int getPartitionForType(String type) {
+        switch (type.toLowerCase()) {
+            case "comment":
+                return 0;
+            case "like":
+                return 1;
+            case "tag":
+                return 2;
+            default:
+                return 0;
+        }
     }
 }
