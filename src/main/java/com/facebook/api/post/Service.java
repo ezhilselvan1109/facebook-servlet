@@ -52,7 +52,7 @@ public class Service {
 			int post_user_id = PostService.getUserId(post_id);
 			if (post_user_id != user_id) {
 				notificationProducer.sendNotification("like",post_user_id,
-						new JSONObject(new Notification(post_id, user, "Your post is liked", null)).toString());
+						new JSONObject(new Notification(post_id, user, "liked your Post",null, null)).toString());
 			}
 		} else {
 			msg.add("Liked Failed");

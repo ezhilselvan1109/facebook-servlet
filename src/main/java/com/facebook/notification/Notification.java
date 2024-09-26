@@ -19,16 +19,20 @@ public class Notification {
 	private List<User> user;
 	
 
+	@JsonProperty("message")
+	private String message;
+	
 	@JsonProperty("comment")
 	private String comment;
 	
 	@JsonProperty("tag")
 	private List<User> tag;
 	
-	public Notification(Integer post_id, List<User> user, String comment,List<User> tag) {
+	public Notification(Integer post_id, List<User> user,String message, String comment,List<User> tag) {
 		super();
 		this.post_id = post_id;
 		this.user = user;
+		this.message = message;
 		this.comment = comment;
 		this.tag=tag;
 	}
@@ -63,6 +67,14 @@ public class Notification {
 
 	public void setTag(List<User> tag) {
 		this.tag = tag;
+	}
+
+	public String getMessage() {
+		return message;
+	}
+
+	public void setMessage(String message) {
+		this.message = message;
 	}
 
 	public String toJson() throws IOException {

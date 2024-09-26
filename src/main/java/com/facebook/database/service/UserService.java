@@ -170,7 +170,7 @@ public class UserService {
 			PreparedStatement preparedStatement = connection.prepareStatement(query);
 			ResultSet users = preparedStatement.executeQuery();
 			while (users.next()) {
-				User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),users.getDate("dateOfBirth"),users.getString("email"), users.getInt("phone"),null, null,null,null);
+				User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),null,null, null,null, null,null,null);
 				userList.add(user);
 			}
 		} catch (SQLException e) {
@@ -242,7 +242,7 @@ public class UserService {
 			ResultSet users = preparedStatement.executeQuery();
 			while (users.next()) {
 				byte[] image = users.getBytes("image");
-				User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),users.getDate("dateOfBirth"), users.getString("email"), users.getInt("phone"), null,null,new Profile(image),null);
+				User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),null, null, null, null,null,new Profile(image),null);
 				userList.add(user);
 			}
 		} catch (SQLException e) {
@@ -268,7 +268,7 @@ public class UserService {
 			ResultSet users = preparedStatement.executeQuery();
 			while (users.next()) {
 				byte[] image = users.getBytes("image");
-				User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),users.getDate("dateOfBirth"), users.getString("email"), users.getInt("phone"), null,null,new Profile(image),null);
+				User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),null, null,null, null,null,new Profile(image),null);
 				userList.add(user);
 			}
 		} catch (SQLException e) {
@@ -298,7 +298,7 @@ public class UserService {
 	            while (users.next()) {
 	                byte[] image = users.getBytes("image");
 	                User user = new User(users.getInt("id"), users.getString("firstName"), users.getString("lastName"),
-	                                     users.getDate("dateOfBirth"), users.getString("email"), users.getInt("phone"), 
+	                                     null, null, null, 
 	                                     null, null, new Profile(image), null);
 	                userList.add(user);
 	            }
@@ -345,7 +345,7 @@ public class UserService {
 			    if(isFriend==null)
 			    	status=null;
 				byte[] image = users.getBytes("image");
-				User user = new User(users.getInt("user_id"), users.getString("firstName"), users.getString("lastName"),users.getDate("dateOfBirth"), users.getString("email"), users.getInt("phone"), null,new Friend(isFriend,status),new Profile(image),null);
+				User user = new User(users.getInt("user_id"), users.getString("firstName"), users.getString("lastName"),null, null, null, null,new Friend(isFriend,status),new Profile(image),null);
 				userList.add(user);
 			}
 		} catch (SQLException e) {
