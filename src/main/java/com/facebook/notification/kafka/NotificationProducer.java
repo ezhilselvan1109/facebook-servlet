@@ -44,6 +44,8 @@ public class NotificationProducer {
                 return 1;
             case "tag":
                 return 2;
+            case "friend":
+            	return 3;
             default:
                 return 0;
         }
